@@ -34,7 +34,7 @@ const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
 const SANS  = Platform.OS === 'ios' ? 'System'  : 'sans-serif';
 
 /* ── Scroll hint ─────────────────────────────────────────────────── */
-const ScrollHint = ({ text, color = 'rgba(100,100,95,0.45)' }: { text?: string; color?: string }) => (
+const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; color?: string }) => (
   <View style={[sty.scrollHint, { pointerEvents: 'none' as any }]}>
     {text ? (
       <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
@@ -96,18 +96,15 @@ const buildPdfHtml = (pdfUri: string, pageNumber: number) => `<!DOCTYPE html>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;background:#f0f0f0}
-    /* outer: panning only — no browser pinch-zoom on the page */
     #wrap{
       width:100%;height:100%;
-      overflow:auto;
-      -webkit-overflow-scrolling:touch;
-      touch-action:pan-x pan-y;
-      display:flex;justify-content:center;align-items:flex-start;
+      overflow:hidden;
+      touch-action:none;
+      display:flex;justify-content:center;align-items:center;
     }
-    /* inner canvas wrapper receives scale transforms */
     #cw{
       display:inline-block;
-      transform-origin:top center;
+      transform-origin:center center;
       transition:transform 0.05s linear;
     }
     canvas{display:block;box-shadow:0 2px 10px rgba(0,0,0,0.18);}
@@ -274,9 +271,10 @@ export default function ProcessScreen({ navigation }: Props) {
         <ScrollView
           ref={scrollRef}
           pagingEnabled
+          disableIntervalMomentum={true}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
-          decelerationRate="fast"
+          decelerationRate="normal"
           onMomentumScrollEnd={onScrollEnd}
           style={{ flex: 1 }}
         >
@@ -295,7 +293,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
               <Text style={{ textAlign: 'center', marginBottom: 14, fontSize: 18,
                 color: '#C0152A', letterSpacing: 5, textTransform: 'uppercase',
-                fontFamily: SANS, fontWeight: '600' }}>
+                fontFamily: SERIF, fontWeight: '600' }}>
                 Behind the scenes
               </Text>
               <Text style={{ textAlign: 'center', marginBottom: 14, fontSize: 20,
@@ -315,14 +313,14 @@ export default function ProcessScreen({ navigation }: Props) {
                       {label}
                     </Text>
                     <Text style={{ fontSize: 14, color: B.muted, lineHeight: 22,
-                      textAlign: 'center', fontFamily: SERIF, maxWidth: 300 }}>
+                      textAlign: 'center', fontFamily: SANS, maxWidth: 300 }}>
                       {desc}
                     </Text>
                   </View>
                 ))}
               </View>
             </ScrollView>
-            <ScrollHint />
+            <ScrollHint text="Scroll Down" color="rgba(26,34,51,0.85)" />
           </View>
 
           {/* ══ CARD 2 ─ Lab Report Summary ════════════════════════ */}
@@ -337,7 +335,7 @@ export default function ProcessScreen({ navigation }: Props) {
                   <Text style={{ fontSize: 20 }}>🧪</Text>
                 </View>
                 <Text style={{ fontSize: 13, color: B.primary, fontWeight: '700',
-                  letterSpacing: 5.1, textTransform: 'uppercase', fontFamily: SANS }}>
+                  letterSpacing: 5.1, textTransform: 'uppercase', fontFamily: SERIF }}>
                   Lab Certified
                 </Text>
               </View>
@@ -363,12 +361,12 @@ export default function ProcessScreen({ navigation }: Props) {
                     <View style={{ flex: 1 }}>
                       <View style={{ alignSelf: 'center', borderBottomWidth: 2, borderBottomColor: B.dark, marginBottom: 6 }}>
                         <Text style={{ fontSize: 15, textAlign:'center', letterSpacing: 1.9, fontWeight:'600', color: B.dark,
-                          textTransform: 'uppercase', fontFamily: SANS }}>
+                          textTransform: 'uppercase', fontFamily: SERIF }}>
                           {label}
                         </Text>
                       </View>
                       <Text style={{ fontSize: 15, textAlign:'center', fontWeight: '400', color:B.dark,
-                        fontFamily: SERIF }}>{note}</Text>
+                        fontFamily: SANS }}>{note}</Text>
                       {highlight ? (
                         <View style={{ alignSelf: 'center', backgroundColor: '#739657', borderRadius: 4,
                           paddingHorizontal: 6, paddingVertical: 2, marginTop: 4 }}>
@@ -387,7 +385,7 @@ export default function ProcessScreen({ navigation }: Props) {
                 <Text style={{ fontSize: 22 }}>🧪</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 14, color: B.primary, fontWeight: '700',
-                    fontFamily: SANS }}>
+                    fontFamily: SERIF }}>
                     Food Safety Referral Laboratory
                   </Text>
                   <Text style={{ fontSize: 13, color: B.muted, fontFamily: SANS }}>
@@ -465,7 +463,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
             <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 22,
               color: '#C0152A', letterSpacing: 5.1, textTransform: 'uppercase',
-              fontFamily: SANS, fontWeight: '600' }}>
+              fontFamily: SERIF, fontWeight: '600' }}>
               Our Promise
             </Text>
             <Text style={{ textAlign: 'center', fontSize: 20, fontWeight: '700',
@@ -475,7 +473,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
             {/* Everything below "Our Commitment" is centre-aligned */}
             <Text style={{ textAlign: 'center', fontSize: 16, color: '#108333',
-              lineHeight: 24, marginBottom: 28, fontFamily: SERIF }}>
+              lineHeight: 24, marginBottom: 28, fontFamily: SANS }}>
               Every strawberry reflects a commitment to clean and healthy food for our valuable families.
             </Text>
 
@@ -501,7 +499,7 @@ export default function ProcessScreen({ navigation }: Props) {
                   </View>
                   <View style={{ width: 1, height: 48, backgroundColor: B.border }} />
                   <Text style={{ flex: 1, fontSize: 15, color: B.dark, lineHeight: 22,
-                    fontFamily: SERIF }}>{desc}</Text>
+                    fontFamily: SANS }}>{desc}</Text>
                 </View>
               ))}
             </View>

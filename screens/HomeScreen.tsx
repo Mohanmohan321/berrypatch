@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Linking,
   StyleSheet,
   Platform,
+  Animated,
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
@@ -43,7 +44,7 @@ const SERIF  = Platform.OS === 'ios' ? 'Georgia'        : 'serif';
 const SANS   = Platform.OS === 'ios' ? 'System'         : 'sans-serif';
 
 /* ── Scroll hint ─────────────────────────────────────────────────── */
-const ScrollHint = ({ text, color = 'rgba(100,100,95,0.45)' }: { text?: string; color?: string }) => (
+const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; color?: string }) => (
   <View style={[sty.scrollHint, { pointerEvents: 'none' as any }]}>
     {text ? (
       <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
@@ -128,7 +129,29 @@ export default function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const [activeCard, setActiveCard] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const splashOpacity = useRef(new Animated.Value(1)).current;
   const isAnimating = useRef(false);
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => {
+      Animated.timing(splashOpacity, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }).start(() => setIsLoading(false));
+    }, 3400);
+    return () => clearTimeout(fadeTimer);
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const scrollTimer = setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: SCREEN_H, animated: true });
+      setActiveCard(1);
+    }, 1500);
+    return () => clearTimeout(scrollTimer);
+  }, [isLoading, SCREEN_H]);
 
   // Width of content column (mirror web's maxWidth: 480)
   const colW = Math.min(SCREEN_W, 480);
@@ -149,6 +172,14 @@ export default function HomeScreen({ navigation }: Props) {
     setActiveCard(idx);
   };
 
+  if (isLoading) {
+    return (
+      <Animated.View style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', opacity: splashOpacity }}>
+        <Image source={logo} style={{ width: 260, height: 260 }} resizeMode="contain" />
+      </Animated.View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center' }}>
       <View style={{ width: colW, flex: 1, position: 'relative' }}>
@@ -156,9 +187,10 @@ export default function HomeScreen({ navigation }: Props) {
         <ScrollView
           ref={scrollRef}
           pagingEnabled
+          disableIntervalMomentum={true}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
-          decelerationRate="fast"
+          decelerationRate="normal"
           onMomentumScrollEnd={onScrollEnd}
           style={{ flex: 1 }}
         >
@@ -170,7 +202,7 @@ export default function HomeScreen({ navigation }: Props) {
               style={{ width: Math.min(colW * 0.98, colW - 8), height: 360 }}
               resizeMode="contain"
             />
-            <ScrollHint text="Scroll Down" color="rgba(80,80,75,0.75)" />
+            <ScrollHint text="Scroll Down" color="rgba(26,34,51,0.85)" />
           </View>
 
           {/* ══ CARD 2 ─ Our Strawberries ══════════════════════════ */}
@@ -196,7 +228,7 @@ export default function HomeScreen({ navigation }: Props) {
                 backgroundColor: 'rgba(193,140,93,0.05)', borderRadius: 10,
                 borderTopRightRadius: 10, borderBottomRightRadius: 10 }}>
                 <Text style={{ fontStyle: 'italic', fontWeight: '600', color: C.dark,
-                  lineHeight: 22, fontSize: 15, fontFamily: SERIF }}>
+                  lineHeight: 22, fontSize: 15, fontFamily: SANS }}>
                   In the quiet hills of Kodaikanal, The Berry Patch began with a simple
                   idea — to grow strawberries the right way.
                 </Text>
@@ -204,12 +236,12 @@ export default function HomeScreen({ navigation }: Props) {
 
               {/* Body */}
               <Text style={{ fontSize: 14, color: C.muted, lineHeight: 22,
-                marginBottom: 8, fontFamily: SERIF }}>
+                marginBottom: 8, fontFamily: SANS }}>
                 We work with local farmers — no shortcuts, no chemicals. Grown organically
                 in Kodaikanal's cool hills, just as nature intended.
               </Text>
               <Text style={{ fontSize: 14, color: C.muted, lineHeight: 22,
-                marginBottom: 10, fontFamily: SERIF }}>
+                marginBottom: 10, fontFamily: SANS }}>
                 We chose the{' '}
                 <Text style={{ color: C.dark, fontWeight: '700' }}>Camarosa variety</Text>
                 {' '}— handpicked and lab-tested by{' '}
@@ -261,7 +293,7 @@ export default function HomeScreen({ navigation }: Props) {
                 Strawberry{'\n'}Preserve
               </Text>
               <Text style={{ textAlign: 'center', maxWidth: 300, fontSize: 16,
-                color: C.muted, lineHeight: 26, fontFamily: SERIF }}>
+                color: C.muted, lineHeight: 26, fontFamily: SANS }}>
                 Small-batch, handmade preserves from our organic harvest.
                 No preservatives. Pure fruit.
               </Text>
@@ -285,7 +317,7 @@ export default function HomeScreen({ navigation }: Props) {
                 Get In Touch
               </Text>
               <Text style={{ textAlign: 'center', fontSize: 16, color: C.muted,
-                fontFamily: SERIF, marginBottom: 22, lineHeight: 24 }}>
+                fontFamily: SANS, marginBottom: 22, lineHeight: 24 }}>
                 Order fresh strawberries or just say hello.
               </Text>
 
@@ -293,11 +325,11 @@ export default function HomeScreen({ navigation }: Props) {
               {([
                 { href: 'https://wa.me/919176540077',         icon: whatsappIcon,  label: 'WhatsApp',
                   sub: 'Chat with us to place an order', shadowColor: 'rgba(37,211,102,0.22)',
-                  accent: '#25D366' },
+                  accent: '#25D366', iconSize: 56 },
                 { href: 'https://www.instagram.com/theberrypatch.organic?igsh=MTNocDgzdzF5ZWJnaA==', icon: instagramIcon, label: 'Instagram',
                   sub: 'Follow our farm journey & updates', shadowColor: 'rgba(193,50,50,0.18)',
-                  accent: C.red },
-              ] as const).map(({ href, icon, label, sub, shadowColor, accent }) => (
+                  accent: C.red, iconSize: 76 },
+              ] as const).map(({ href, icon, label, sub, shadowColor, accent, iconSize }) => (
                 <TouchableOpacity
                   key={label}
                   onPress={() => Linking.openURL(href)}
@@ -309,9 +341,11 @@ export default function HomeScreen({ navigation }: Props) {
                     shadowColor, shadowOffset: { width: 0, height: 6 },
                     shadowOpacity: 0.28, shadowRadius: 14, elevation: 6 }}
                 >
-                  <Image source={icon}
-                    style={{ width: 76, height: 76, borderRadius: 38 }}
-                    resizeMode="cover" />
+                  <View style={{ width: 76, height: 76, justifyContent: 'center', alignItems: 'center' }}>
+                    <Image source={icon}
+                      style={{ width: iconSize, height: iconSize, borderRadius: iconSize / 2 }}
+                      resizeMode="cover" />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 22, fontWeight: '800', color: C.dark,
                       fontFamily: SERIF, marginBottom: 5 }}>{label}</Text>
