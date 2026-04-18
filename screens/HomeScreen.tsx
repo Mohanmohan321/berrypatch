@@ -287,10 +287,13 @@ export default function HomeScreen({ navigation }: Props) {
           data={[0, 1, 2, 3]}
           keyExtractor={(item) => String(item)}
           renderItem={renderCard}
-          pagingEnabled
+          snapToInterval={SCREEN_H}
+          snapToAlignment="start"
           disableIntervalMomentum={true}
           showsVerticalScrollIndicator={false}
           decelerationRate="fast"
+          bounces={false}
+          overScrollMode="never"
           getItemLayout={(_, index) => ({ length: SCREEN_H, offset: SCREEN_H * index, index })}
           removeClippedSubviews={true}
           maxToRenderPerBatch={1}
