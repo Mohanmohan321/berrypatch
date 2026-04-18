@@ -18,10 +18,7 @@ import {
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const PAGE_H  = Dimensions.get('window').height;
-/* On web use 100vh so cards fill the viewport regardless of browser chrome. */
-const CARD_H: any  = Platform.OS === 'web' ? '100vh' : PAGE_H;
-const WEB_SNAP: any = Platform.OS === 'web' ? { scrollSnapAlign: 'start' } : null;
+const PAGE_H = Dimensions.get('window').height;
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 
@@ -87,6 +84,8 @@ const ImageCarousel = ({ containerWidth }: { containerWidth: number }) => {
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
         scrollEventThrottle={16}
+        nestedScrollEnabled={true}
+        directionalLockEnabled={true}
         onScroll={syncDot}
         onScrollEndDrag={syncDot}
         onMomentumScrollEnd={syncDot}
@@ -123,43 +122,103 @@ export default function HomeScreen({ navigation }: Props) {
   const { width: SCREEN_W } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const flatRef = useRef<FlatList>(null);
-  const webScrollRef = useRef<ScrollView>(null);
   const currentPage = useRef(0);
+  const isScrollingRef = useRef(false);
+  const [webPage, setWebPage] = React.useState(0);
+  const setWebPageRef = useRef(setWebPage);
 
   const colW  = Math.min(SCREEN_W, 480);
   const innerW = colW - 48;
+
+  /* ── Track true viewport height (mobile browser chrome aware) ─── */
+  const [vh, setVh] = React.useState(
+    Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerHeight : PAGE_H
+  );
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const update = () => {
+      const h = (window as any).visualViewport?.height ?? window.innerHeight;
+      setVh(h);
+    };
+    const vp = (window as any).visualViewport;
+    if (vp) { vp.addEventListener('resize', update); return () => vp.removeEventListener('resize', update); }
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  const cardH = Platform.OS === 'web' ? vh : PAGE_H;
 
   /* ── Auto-scroll card 1 → card 2 after 1.5 s ─────────────────── */
   useEffect(() => {
     const timer = setTimeout(() => {
       if (Platform.OS === 'web') {
-        webScrollRef.current?.scrollTo({ y: (window as any).innerHeight, animated: false });
         currentPage.current = 1;
+        setWebPageRef.current(1);
         return;
       }
-      const anim = new Animated.Value(0);
-      anim.addListener(({ value }) => {
-        flatRef.current?.scrollToOffset({ offset: value, animated: false });
-      });
-      Animated.timing(anim, {
-        toValue: PAGE_H,
-        duration: 900,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: false,
-      }).start(() => {
-        anim.removeAllListeners();
-        currentPage.current = 1;
-      });
+      flatRef.current?.scrollToIndex({ index: 1, animated: true });
+      currentPage.current = 1;
     }, 1500);
     return () => clearTimeout(timer);
+  }, []);
+
+  /* ── One-page-per-scroll on web ─────────────────────────────── */
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const TOTAL = 4;
+
+    let wheelAcc = 0;
+    let wheelTimer: any = null;
+
+    const goPage = (next: number) => {
+      const p = Math.max(0, Math.min(TOTAL - 1, next));
+      if (p === currentPage.current || isScrollingRef.current) return;
+      isScrollingRef.current = true;
+      currentPage.current = p;
+      setWebPageRef.current(p);
+      setTimeout(() => {
+        isScrollingRef.current = false;
+        wheelAcc = 0; // flush any residual momentum that built up during the lock
+      }, 900);
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (isScrollingRef.current) return;
+      wheelAcc += e.deltaY;
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => { wheelAcc = 0; }, 80);
+      if (Math.abs(wheelAcc) >= 50) {
+        const dir = wheelAcc > 0 ? 1 : -1;
+        wheelAcc = 0;
+        clearTimeout(wheelTimer);
+        goPage(currentPage.current + dir);
+      }
+    };
+
+    let ty = 0;
+    const handleTouchStart = (e: TouchEvent) => { ty = e.touches[0].clientY; };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const dy = ty - e.changedTouches[0].clientY;
+      if (Math.abs(dy) < 60) return;
+      goPage(currentPage.current + (dy > 0 ? 1 : -1));
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
   }, []);
 
   /* ── Render each card lazily ─────────────────────────────────── */
   const renderCard = useCallback(({ item: idx }: { item: number }) => {
     /* ── CARD 1 ─ Logo ─────────────────────────────────────────── */
     if (idx === 0) return (
-      <View style={[sty.card, { height: CARD_H, justifyContent: 'center', alignItems: 'center',
-        paddingHorizontal: 32, paddingTop: insets.top }, WEB_SNAP]}>
+      <View style={[sty.card, { height: cardH, justifyContent: 'center', alignItems: 'center',
+        paddingHorizontal: 32, paddingTop: insets.top }]}>
         <Image source={logo} style={{ width: Math.min(colW * 0.98, colW - 8), height: 360 }} resizeMode="contain" />
         <ScrollHint text="Scroll Down" color="rgba(26,34,51,0.85)" />
       </View>
@@ -167,7 +226,7 @@ export default function HomeScreen({ navigation }: Props) {
 
     /* ── CARD 2 ─ Our Strawberries ─────────────────────────────── */
     if (idx === 1) return (
-      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
+      <View style={[sty.card, { height: cardH }]}>
         <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: 24, justifyContent: 'center' }}>
           <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 22,
             color: '#C0152A', letterSpacing: 3.1, textTransform: 'uppercase',
@@ -218,7 +277,7 @@ export default function HomeScreen({ navigation }: Props) {
 
     /* ── CARD 3 ─ Strawberry Preserve ──────────────────────────── */
     if (idx === 2) return (
-      <View style={[sty.card, { height: CARD_H, alignItems: 'center', paddingHorizontal: 32 }, WEB_SNAP]}>
+      <View style={[sty.card, { height: cardH, alignItems: 'center', paddingHorizontal: 32 }]}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 10, paddingTop: insets.top }}>
           <View style={{ backgroundColor: C.red, borderRadius: 99, paddingHorizontal: 24, paddingVertical: 10,
             shadowColor: C.red, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.45, shadowRadius: 8, elevation: 5 }}>
@@ -239,12 +298,12 @@ export default function HomeScreen({ navigation }: Props) {
 
     /* ── CARD 4 ─ Contact ───────────────────────────────────────── */
     return (
-      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
+      <View style={[sty.card, { height: cardH }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-          contentContainerStyle={{ paddingHorizontal: 22, paddingTop: insets.top,
-            paddingBottom: insets.bottom, flexGrow: 1, justifyContent: 'center' }}
+          scrollEnabled={true}
+          contentContainerStyle={{ paddingHorizontal: 22, paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 24, flexGrow: 1, justifyContent: 'center' }}
         >
           <Text style={{ textAlign: 'center', fontSize: 30, fontWeight: '800',
             color: '#3a4f73', letterSpacing: 2.5, textTransform: 'uppercase',
@@ -290,20 +349,21 @@ export default function HomeScreen({ navigation }: Props) {
         </ScrollView>
       </View>
     );
-  }, [insets, colW, innerW, navigation]);
+  }, [insets, colW, innerW, navigation, cardH]);
 
-  /* ── Web: CSS scroll snapping ───────────────────────────────── */
+  /* ── Web: reels-style CSS transform slide ───────────────────── */
   if (Platform.OS === 'web') {
     return (
-      <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center' }}>
-        <View style={{ width: colW, flex: 1 }}>
-          <ScrollView
-            ref={webScrollRef}
-            showsVerticalScrollIndicator={false}
-            style={[{ flex: 1 }, { scrollSnapType: 'y mandatory' } as any]}
-          >
+      <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center', overflow: 'hidden' as any }}>
+        <View style={{ width: colW, flex: 1, overflow: 'hidden' as any }}>
+          <View style={{
+            transform: [{ translateY: -webPage * vh }],
+            transitionProperty: 'transform',
+            transitionDuration: '420ms',
+            transitionTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          } as any}>
             {[0, 1, 2, 3].map((idx) => renderCard({ item: idx }))}
-          </ScrollView>
+          </View>
         </View>
       </View>
     );
@@ -318,9 +378,7 @@ export default function HomeScreen({ navigation }: Props) {
           data={[0, 1, 2, 3]}
           keyExtractor={(item) => String(item)}
           renderItem={renderCard}
-          snapToInterval={PAGE_H}
-          snapToAlignment="start"
-          disableIntervalMomentum={true}
+          pagingEnabled={true}
           showsVerticalScrollIndicator={false}
           decelerationRate="fast"
           bounces={false}

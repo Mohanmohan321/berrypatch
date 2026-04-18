@@ -232,7 +232,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
 
           <View style={{ gap: 12, alignItems: 'center' }}>
             <TouchableOpacity
-              onPress={() => Linking.openURL('https://wa.me/')}
+              onPress={() => Linking.openURL('https://wa.me/919176540077')}
               activeOpacity={0.75}
               style={[sty.btnFill, { width: 220, justifyContent: 'center' }]}
             >
