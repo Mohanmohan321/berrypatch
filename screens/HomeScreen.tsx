@@ -234,7 +234,7 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={[sty.card, { height: pageH }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}
+          scrollEnabled={false}
           contentContainerStyle={{ paddingHorizontal: 22, paddingTop: insets.top,
             paddingBottom: insets.bottom, flexGrow: 1, justifyContent: 'center' }}
         >

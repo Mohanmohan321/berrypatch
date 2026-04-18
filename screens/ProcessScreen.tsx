@@ -246,7 +246,7 @@ export default function ProcessScreen({ navigation }: Props) {
       <View style={[sty.card, { height: pageH }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          nestedScrollEnabled={true}
+          scrollEnabled={false}
           contentContainerStyle={{ paddingHorizontal: 20,
             paddingTop: insets.top + 16, paddingBottom: insets.bottom,
             alignItems: 'center' }}
