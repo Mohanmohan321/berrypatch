@@ -11,11 +11,17 @@ import {
   Platform,
   Animated,
   Easing,
+  Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const PAGE_H  = Dimensions.get('window').height;
+/* On web use 100vh so cards fill the viewport regardless of browser chrome. */
+const CARD_H: any  = Platform.OS === 'web' ? '100vh' : PAGE_H;
+const WEB_SNAP: any = Platform.OS === 'web' ? { scrollSnapAlign: 'start' } : null;
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 
@@ -114,14 +120,11 @@ const ImageCarousel = ({ containerWidth }: { containerWidth: number }) => {
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { height: SCREEN_H, width: SCREEN_W } = useWindowDimensions();
+  const { width: SCREEN_W } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const flatRef = useRef<FlatList>(null);
+  const webScrollRef = useRef<ScrollView>(null);
   const currentPage = useRef(0);
-  /* Measured height of the FlatList container — more reliable than
-     useWindowDimensions on Android where window height can include
-     the soft navigation bar, causing snapToInterval to drift. */
-  const [pageH, setPageH] = React.useState(SCREEN_H);
 
   const colW  = Math.min(SCREEN_W, 480);
   const innerW = colW - 48;
@@ -129,12 +132,17 @@ export default function HomeScreen({ navigation }: Props) {
   /* ── Auto-scroll card 1 → card 2 after 1.5 s ─────────────────── */
   useEffect(() => {
     const timer = setTimeout(() => {
+      if (Platform.OS === 'web') {
+        webScrollRef.current?.scrollTo({ y: (window as any).innerHeight, animated: false });
+        currentPage.current = 1;
+        return;
+      }
       const anim = new Animated.Value(0);
       anim.addListener(({ value }) => {
         flatRef.current?.scrollToOffset({ offset: value, animated: false });
       });
       Animated.timing(anim, {
-        toValue: pageH,
+        toValue: PAGE_H,
         duration: 900,
         easing: Easing.inOut(Easing.ease),
         useNativeDriver: false,
@@ -144,14 +152,14 @@ export default function HomeScreen({ navigation }: Props) {
       });
     }, 1500);
     return () => clearTimeout(timer);
-  }, [pageH]);
+  }, []);
 
   /* ── Render each card lazily ─────────────────────────────────── */
   const renderCard = useCallback(({ item: idx }: { item: number }) => {
     /* ── CARD 1 ─ Logo ─────────────────────────────────────────── */
     if (idx === 0) return (
-      <View style={[sty.card, { height: pageH, justifyContent: 'center', alignItems: 'center',
-        paddingHorizontal: 32, paddingTop: insets.top }]}>
+      <View style={[sty.card, { height: CARD_H, justifyContent: 'center', alignItems: 'center',
+        paddingHorizontal: 32, paddingTop: insets.top }, WEB_SNAP]}>
         <Image source={logo} style={{ width: Math.min(colW * 0.98, colW - 8), height: 360 }} resizeMode="contain" />
         <ScrollHint text="Scroll Down" color="rgba(26,34,51,0.85)" />
       </View>
@@ -159,7 +167,7 @@ export default function HomeScreen({ navigation }: Props) {
 
     /* ── CARD 2 ─ Our Strawberries ─────────────────────────────── */
     if (idx === 1) return (
-      <View style={[sty.card, { height: pageH }]}>
+      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
         <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: 24, justifyContent: 'center' }}>
           <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 22,
             color: '#C0152A', letterSpacing: 3.1, textTransform: 'uppercase',
@@ -210,7 +218,7 @@ export default function HomeScreen({ navigation }: Props) {
 
     /* ── CARD 3 ─ Strawberry Preserve ──────────────────────────── */
     if (idx === 2) return (
-      <View style={[sty.card, { height: pageH, alignItems: 'center', paddingHorizontal: 32 }]}>
+      <View style={[sty.card, { height: CARD_H, alignItems: 'center', paddingHorizontal: 32 }, WEB_SNAP]}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 10, paddingTop: insets.top }}>
           <View style={{ backgroundColor: C.red, borderRadius: 99, paddingHorizontal: 24, paddingVertical: 10,
             shadowColor: C.red, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.45, shadowRadius: 8, elevation: 5 }}>
@@ -231,7 +239,7 @@ export default function HomeScreen({ navigation }: Props) {
 
     /* ── CARD 4 ─ Contact ───────────────────────────────────────── */
     return (
-      <View style={[sty.card, { height: pageH }]}>
+      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           scrollEnabled={false}
@@ -282,33 +290,48 @@ export default function HomeScreen({ navigation }: Props) {
         </ScrollView>
       </View>
     );
-  }, [pageH, insets, colW, innerW, navigation]);
+  }, [insets, colW, innerW, navigation]);
 
+  /* ── Web: CSS scroll snapping ───────────────────────────────── */
+  if (Platform.OS === 'web') {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center' }}>
+        <View style={{ width: colW, flex: 1 }}>
+          <ScrollView
+            ref={webScrollRef}
+            showsVerticalScrollIndicator={false}
+            style={[{ flex: 1 }, { scrollSnapType: 'y mandatory' } as any]}
+          >
+            {[0, 1, 2, 3].map((idx) => renderCard({ item: idx }))}
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
+
+  /* ── Native: FlatList with snapToInterval ───────────────────── */
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center' }}>
-      <View
-        style={{ width: colW, flex: 1, position: 'relative' }}
-        onLayout={(e) => setPageH(e.nativeEvent.layout.height)}
-      >
+      <View style={{ width: colW, flex: 1, position: 'relative' }}>
         <FlatList
           ref={flatRef}
           data={[0, 1, 2, 3]}
           keyExtractor={(item) => String(item)}
           renderItem={renderCard}
-          snapToInterval={pageH}
+          snapToInterval={PAGE_H}
           snapToAlignment="start"
           disableIntervalMomentum={true}
           showsVerticalScrollIndicator={false}
           decelerationRate="fast"
           bounces={false}
           overScrollMode="never"
-          getItemLayout={(_, index) => ({ length: pageH, offset: pageH * index, index })}
+          getItemLayout={(_, index) => ({ length: PAGE_H, offset: PAGE_H * index, index })}
           removeClippedSubviews={false}
           maxToRenderPerBatch={2}
           windowSize={3}
           initialNumToRender={2}
           onMomentumScrollEnd={(e) => {
-            currentPage.current = Math.round(e.nativeEvent.contentOffset.y / pageH);
+            currentPage.current = Math.round(e.nativeEvent.contentOffset.y / PAGE_H);
           }}
           style={{ flex: 1 }}
         />

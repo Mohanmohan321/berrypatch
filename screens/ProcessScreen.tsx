@@ -8,8 +8,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { useWindowDimensions } from 'react-native';
+
+const PAGE_H  = Dimensions.get('window').height;
+const CARD_H: any  = Platform.OS === 'web' ? '100vh' : PAGE_H;
+const WEB_SNAP: any = Platform.OS === 'web' ? { scrollSnapAlign: 'start' } : null;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Asset } from 'expo-asset';
@@ -222,12 +227,11 @@ const PdfCard = ({ pageNumber, pdfUri }: { pageNumber: number; pdfUri: string | 
 type Props = NativeStackScreenProps<RootStackParamList, 'Process'>;
 
 export default function ProcessScreen({ navigation }: Props) {
-  const { height: SCREEN_H, width: SCREEN_W } = useWindowDimensions();
+  const { width: SCREEN_W } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const flatRef = useRef<FlatList>(null);
   const currentPage = useRef(0);
   const [pdfUri, setPdfUri] = useState<string | null>(null);
-  const [pageH, setPageH] = useState(SCREEN_H);
 
   const colW = Math.min(SCREEN_W, 480);
 
@@ -243,7 +247,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
     /* ── CARD 1 ─ From Farm to Table ──────────────────────────────── */
     if (idx === 0) return (
-      <View style={[sty.card, { height: pageH }]}>
+      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           scrollEnabled={false}
@@ -290,7 +294,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
     /* ── CARD 2 ─ Lab Report Summary ──────────────────────────────── */
     if (idx === 1) return (
-      <View style={[sty.card, { height: pageH }]}>
+      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
         <View style={{ flex: 1, paddingHorizontal: 24,
           paddingTop: insets.top + 48, paddingBottom: 40 }}>
 
@@ -366,7 +370,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
     /* ── CARD 3 ─ Lab PDF Page 1 ──────────────────────────────────── */
     if (idx === 2) return (
-      <View style={[sty.card, { height: pageH }]}>
+      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
         <View style={{ flex: 1, paddingHorizontal: 20,
           paddingTop: insets.top + 44, paddingBottom: 48 }}>
 
@@ -398,7 +402,7 @@ export default function ProcessScreen({ navigation }: Props) {
 
     /* ── CARD 4 ─ Lab PDF Page 2 ──────────────────────────────────── */
     if (idx === 3) return (
-      <View style={[sty.card, { height: pageH }]}>
+      <View style={[sty.card, { height: CARD_H }, WEB_SNAP]}>
         <View style={{ flex: 1, paddingHorizontal: 20,
           paddingTop: insets.top + 44, paddingBottom: 48 }}>
 
@@ -430,8 +434,8 @@ export default function ProcessScreen({ navigation }: Props) {
 
     /* ── CARD 5 ─ Our Commitment ──────────────────────────────────── */
     return (
-      <View style={[sty.card, { height: pageH, paddingHorizontal: 24,
-        paddingTop: insets.top + 48, paddingBottom: insets.bottom + 32 }]}>
+      <View style={[sty.card, { height: CARD_H, paddingHorizontal: 24,
+        paddingTop: insets.top + 48, paddingBottom: insets.bottom + 32 }, WEB_SNAP]}>
 
         <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 22,
           color: '#C0152A', letterSpacing: 5.1, textTransform: 'uppercase',
@@ -492,33 +496,47 @@ export default function ProcessScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
     );
-  }, [pageH, insets, pdfUri, goBackToStory]);
+  }, [insets, pdfUri, goBackToStory]);
 
+  /* ── Web: CSS scroll snapping ───────────────────────────────── */
+  if (Platform.OS === 'web') {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center' }}>
+        <View style={{ width: colW, flex: 1 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={[{ flex: 1 }, { scrollSnapType: 'y mandatory' } as any]}
+          >
+            {[0, 1, 2, 3, 4].map((idx) => renderCard({ item: idx }))}
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
+
+  /* ── Native: FlatList with snapToInterval ───────────────────── */
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', alignItems: 'center' }}>
-      <View
-        style={{ width: colW, flex: 1 }}
-        onLayout={(e) => setPageH(e.nativeEvent.layout.height)}
-      >
+      <View style={{ width: colW, flex: 1 }}>
         <FlatList
           ref={flatRef}
           data={[0, 1, 2, 3, 4]}
           keyExtractor={(item) => String(item)}
           renderItem={renderCard}
-          snapToInterval={pageH}
+          snapToInterval={PAGE_H}
           snapToAlignment="start"
           disableIntervalMomentum={true}
           showsVerticalScrollIndicator={false}
           decelerationRate="fast"
           bounces={false}
           overScrollMode="never"
-          getItemLayout={(_, index) => ({ length: pageH, offset: pageH * index, index })}
+          getItemLayout={(_, index) => ({ length: PAGE_H, offset: PAGE_H * index, index })}
           removeClippedSubviews={false}
           maxToRenderPerBatch={2}
           windowSize={3}
           initialNumToRender={1}
           onMomentumScrollEnd={(e) => {
-            currentPage.current = Math.round(e.nativeEvent.contentOffset.y / pageH);
+            currentPage.current = Math.round(e.nativeEvent.contentOffset.y / PAGE_H);
           }}
           style={{ flex: 1 }}
         />
