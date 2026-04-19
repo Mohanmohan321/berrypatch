@@ -55,7 +55,7 @@ const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; co
           {text}
         </Text>
       ) : null}
-      <Text style={{ fontSize: 22, color, lineHeight: 22 }}>⌄</Text>
+      <Text style={{ fontSize: 22, color, lineHeight: 22, fontWeight: '900' }}>⌄</Text>
     </View>
   );
 };
