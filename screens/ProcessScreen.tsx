@@ -616,7 +616,7 @@ export default function ProcessScreen({ navigation }: Props) {
             </Text>
           </View>
 
-          <View style={{ flex: 1, borderWidth: 1.5, borderColor: B.border,
+          <View style={{ height: cardH * 0.65, borderWidth: 1.5, borderColor: B.border,
             borderRadius: 16, overflow: 'hidden',
             shadowColor: B.primary, shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.14, shadowRadius: 10, elevation: 4 }}>
@@ -648,7 +648,7 @@ export default function ProcessScreen({ navigation }: Props) {
             </Text>
           </View>
 
-          <View style={{ flex: 1, borderWidth: 1.5, borderColor: 'rgba(193,140,93,0.22)',
+          <View style={{ height: cardH * 0.65, borderWidth: 1.5, borderColor: 'rgba(193,140,93,0.22)',
             borderRadius: 16, overflow: 'hidden',
             shadowColor: B.amber, shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.12, shadowRadius: 10, elevation: 4 }}>
