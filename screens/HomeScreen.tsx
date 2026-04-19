@@ -51,11 +51,11 @@ const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; co
   return (
     <View style={[sty.scrollHint, { bottom: bottom + 16, pointerEvents: 'none' as any }]}>
       {text ? (
-        <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
+        <Text style={{ fontSize: 12, color, letterSpacing: 2.5, textTransform: 'uppercase', fontFamily: SANS, fontWeight: '700' }}>
           {text}
         </Text>
       ) : null}
-      <Text style={{ fontSize: 22, color, lineHeight: 22, fontWeight: '900' }}>⌄</Text>
+      <Text style={{ fontSize: 32, color, lineHeight: 30, fontWeight: '900' }}>⌄</Text>
     </View>
   );
 };
