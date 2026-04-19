@@ -45,16 +45,19 @@ const SERIF = Platform.OS === 'ios' ? 'Georgia'  : 'serif';
 const SANS  = Platform.OS === 'ios' ? 'System'   : 'sans-serif';
 
 /* ── Scroll hint ─────────────────────────────────────────────────── */
-const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; color?: string }) => (
-  <View style={[sty.scrollHint, { pointerEvents: 'none' as any }]}>
-    {text ? (
-      <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
-        {text}
-      </Text>
-    ) : null}
-    <Text style={{ fontSize: 22, color, lineHeight: 22 }}>⌄</Text>
-  </View>
-);
+const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; color?: string }) => {
+  const { bottom } = useSafeAreaInsets();
+  return (
+    <View style={[sty.scrollHint, { bottom: bottom + 16, pointerEvents: 'none' as any }]}>
+      {text ? (
+        <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
+          {text}
+        </Text>
+      ) : null}
+      <Text style={{ fontSize: 22, color, lineHeight: 22 }}>⌄</Text>
+    </View>
+  );
+};
 
 /* ── Image carousel ──────────────────────────────────────────────── */
 const ImageCarousel = ({ containerWidth }: { containerWidth: number }) => {
@@ -227,10 +230,10 @@ export default function HomeScreen({ navigation }: Props) {
     /* ── CARD 2 ─ Our Strawberries ─────────────────────────────── */
     if (idx === 1) return (
       <View style={[sty.card, { height: cardH }]}>
-        <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: 24, justifyContent: 'center' }}>
+        <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 72, justifyContent: 'center' }}>
           <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 22,
             color: '#C0152A', letterSpacing: 3.1, textTransform: 'uppercase',
-            fontWeight: '700', fontFamily: SANS }}>
+            fontWeight: '700', fontFamily: SERIF }}>
             Strawberries
           </Text>
           <Text style={{ textAlign: 'center', marginBottom: 12, fontSize: 20,
@@ -405,7 +408,7 @@ const sty = StyleSheet.create({
   },
   scrollHint: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 0,
     left: 0,
     right: 0,
     alignItems: 'center',

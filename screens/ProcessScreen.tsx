@@ -35,16 +35,19 @@ const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
 const SANS  = Platform.OS === 'ios' ? 'System'  : 'sans-serif';
 
 /* ── Scroll hint ─────────────────────────────────────────────────── */
-const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; color?: string }) => (
-  <View style={[sty.scrollHint, { pointerEvents: 'none' as any }]}>
-    {text ? (
-      <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
-        {text}
-      </Text>
-    ) : null}
-    <Text style={{ fontSize: 22, color, lineHeight: 22 }}>⌄</Text>
-  </View>
-);
+const ScrollHint = ({ text, color = 'rgba(26,34,51,0.85)' }: { text?: string; color?: string }) => {
+  const { bottom } = useSafeAreaInsets();
+  return (
+    <View style={[sty.scrollHint, { bottom: bottom + 16, pointerEvents: 'none' as any }]}>
+      {text ? (
+        <Text style={{ fontSize: 10, color, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SANS }}>
+          {text}
+        </Text>
+      ) : null}
+      <Text style={{ fontSize: 22, color, lineHeight: 22 }}>⌄</Text>
+    </View>
+  );
+};
 
 /* ── Data ────────────────────────────────────────────────────────── */
 const steps = [
@@ -482,7 +485,7 @@ export default function ProcessScreen({ navigation }: Props) {
     if (idx === 0) return (
       <View style={[sty.card, { height: cardH, justifyContent: 'center' }]}>
         <View style={{ paddingHorizontal: 20,
-          paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24,
+          paddingTop: insets.top + 16, paddingBottom: insets.bottom + 72,
           alignItems: 'center' }}>
           <View style={{ width: '100%', alignItems: 'flex-start', marginBottom: 20 }}>
             <BackBtn onPress={goBackToStory} />
@@ -525,7 +528,7 @@ export default function ProcessScreen({ navigation }: Props) {
     if (idx === 1) return (
       <View style={[sty.card, { height: cardH }]}>
         <View style={{ flex: 1, paddingHorizontal: 24,
-          paddingTop: insets.top + 48, paddingBottom: 40 }}>
+          paddingTop: insets.top + 48, paddingBottom: insets.bottom + 72 }}>
 
           <View style={{ alignItems: 'center', marginBottom: 10 }}>
             <View style={{ width: 44, height: 44, borderRadius: 22,
@@ -601,7 +604,7 @@ export default function ProcessScreen({ navigation }: Props) {
     if (idx === 2) return (
       <View style={[sty.card, { height: cardH }]}>
         <View style={{ flex: 1, paddingHorizontal: 20,
-          paddingTop: insets.top + 20, paddingBottom: 36 }}>
+          paddingTop: insets.top + 20, paddingBottom: insets.bottom + 72 }}>
 
           <View style={{ alignItems: 'center', marginBottom: 12, gap: 2 }}>
             <Text style={{ fontSize: 13, color: '#C0152A', fontWeight: '700',
@@ -633,7 +636,7 @@ export default function ProcessScreen({ navigation }: Props) {
     if (idx === 3) return (
       <View style={[sty.card, { height: cardH }]}>
         <View style={{ flex: 1, paddingHorizontal: 20,
-          paddingTop: insets.top + 20, paddingBottom: 36 }}>
+          paddingTop: insets.top + 20, paddingBottom: insets.bottom + 72 }}>
 
           <View style={{ alignItems: 'center', marginBottom: 12, gap: 2 }}>
             <Text style={{ fontSize: 13, color: '#C0152A', fontWeight: '700',
@@ -690,19 +693,19 @@ export default function ProcessScreen({ navigation }: Props) {
                 borderRadius: 20,
                 shadowColor: B.primary, shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.12, shadowRadius: 9, elevation: 3 }}>
-              <View style={{ alignItems: 'center', flexShrink: 0, width: 60 }}>
+              <View style={{ alignItems: 'center', flexShrink: 0, width: 84 }}>
                 {image
                   ? <Image source={image} style={{ width: 40, height: 40, marginBottom: 4 }} resizeMode="contain" />
                   : <Text style={{ fontSize: 28, marginBottom: 4 }}>{emoji}</Text>
                 }
-                <Text style={{ fontSize: 16, color: B.dark, fontWeight: '800',
+                <Text style={{ fontSize: 15, color: B.dark, fontWeight: '800',
                   textAlign: 'center', fontFamily: SANS }}>{stat}</Text>
-                <Text style={{ fontSize: 10, color: B.muted, textTransform: 'uppercase',
+                <Text style={{ fontSize: 10, color: B.primary, textTransform: 'uppercase',
                   letterSpacing: 1.5, textAlign: 'center', marginTop: 2,
                   fontFamily: SANS }}>{label}</Text>
               </View>
-              <View style={{ width: 1, height: 48, backgroundColor: B.border }} />
-              <Text style={{ flex: 1, fontSize: 15, color: B.dark, lineHeight: 22,
+              <View style={{ width: 1, alignSelf: 'stretch', backgroundColor: B.border }} />
+              <Text style={{ flex: 1, fontSize: 14, color: B.dark, lineHeight: 22,
                 fontFamily: SANS }}>{desc}</Text>
             </View>
           ))}
@@ -711,16 +714,15 @@ export default function ProcessScreen({ navigation }: Props) {
         <TouchableOpacity
           onPress={goBackToStory}
           activeOpacity={0.88}
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-            gap: 8, width: '100%', marginTop: 24, backgroundColor: '#739657',
+          style={{ alignItems: 'center', justifyContent: 'center',
+            width: '100%', marginTop: 24, backgroundColor: '#739657',
             borderRadius: 14, paddingVertical: 16,
             shadowColor: B.primary, shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.38, shadowRadius: 10, elevation: 6 }}
         >
-          <Text style={{ color: 'white', fontSize: 18 }}>←</Text>
           <Text style={{ color: 'white', fontSize: 16, textTransform: 'uppercase', fontWeight: '700',
             letterSpacing: 0.6, fontFamily: SANS }}>
-            Back to Strawberries
+            ← Back to Strawberries
           </Text>
         </TouchableOpacity>
       </View>
@@ -781,7 +783,7 @@ const sty = StyleSheet.create({
   },
   scrollHint: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 0,
     left: 0,
     right: 0,
     alignItems: 'center',

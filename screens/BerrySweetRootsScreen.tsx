@@ -15,7 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 
-const FONT = Platform.OS === 'ios' ? 'System' : 'sans-serif';
+const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
+const SANS  = Platform.OS === 'ios' ? 'System'  : 'sans-serif';
 
 /* ── Fade-in section ─────────────────────────────────────────────── */
 const FadeSection = ({
@@ -48,7 +49,7 @@ const FadeSection = ({
 const Label = ({ children }: { children: string }) => (
   <Text style={{ fontSize: 10, fontWeight: '600', letterSpacing: 3.5,
     textTransform: 'uppercase', color: '#C0392B', marginBottom: 14,
-    textAlign: 'center', fontFamily: FONT }}>
+    textAlign: 'center', fontFamily: SANS }}>
     {children}
   </Text>
 );
@@ -82,7 +83,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
 
   const bodyStyle = {
     fontSize: 16, color: '#666', lineHeight: 28,
-    fontFamily: FONT, textAlign: 'center' as const,
+    fontFamily: SANS, textAlign: 'center' as const,
   };
 
   const headingLg = {
@@ -92,7 +93,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
     lineHeight: Math.min(Math.max(width * 0.11, 41.6), 70.4) * 1.04,
     color: '#0a0a0a',
     marginBottom: 22,
-    fontFamily: FONT,
+    fontFamily: SERIF,
     textAlign: 'center' as const,
   };
 
@@ -103,7 +104,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
     lineHeight: Math.min(Math.max(width * 0.055, 26.4), 36) * 1.1,
     color: '#0a0a0a',
     marginBottom: 18,
-    fontFamily: FONT,
+    fontFamily: SERIF,
     textAlign: 'center' as const,
   };
 
@@ -124,7 +125,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
             {/* Eyebrow */}
             <Text style={{ fontSize: 10, fontWeight: '600', letterSpacing: 3.5,
               textTransform: 'uppercase', color: '#C0392B', marginBottom: 20,
-              fontFamily: FONT, textAlign: 'center' }}>
+              fontFamily: SANS, textAlign: 'center' }}>
               Kodaikanal, India
             </Text>
 
@@ -136,7 +137,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
             {/* Subtext */}
             <Text style={{ fontSize: 17, color: '#666', lineHeight: 29,
               maxWidth: 380, textAlign: 'center', marginBottom: 48,
-              fontFamily: FONT }}>
+              fontFamily: SANS }}>
               Grown in Kodaikanal. Pure, organic strawberries cultivated with care.
             </Text>
 
@@ -147,7 +148,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
               activeOpacity={0.75}
             >
               <Text style={{ fontSize: 13, fontWeight: '500', color: '#111',
-                fontFamily: FONT }}>
+                fontFamily: SANS }}>
                 Order Fresh  ↓
               </Text>
             </TouchableOpacity>
@@ -183,7 +184,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
             lineHeight: Math.min(Math.max(width * 0.18, 64), 128) * 0.92,
             color: '#0a0a0a',
             marginBottom: 24,
-            fontFamily: FONT,
+            fontFamily: SERIF,
             textAlign: 'center',
           }}>
             Camarosa
@@ -226,7 +227,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
             Eat Clean.{'\n'}Eat Real.
           </Text>
           <Text style={{ fontSize: 15, color: '#999', lineHeight: 25,
-            marginBottom: 40, textAlign: 'center', fontFamily: FONT }}>
+            marginBottom: 40, textAlign: 'center', fontFamily: SANS }}>
             Order fresh Camarosa strawberries from Kodaikanal.
           </Text>
 
@@ -237,7 +238,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
               style={[sty.btnFill, { width: 220, justifyContent: 'center' }]}
             >
               <Text style={{ fontSize: 14, fontWeight: '500', color: '#fff',
-                fontFamily: FONT, textAlign: 'center' }}>
+                fontFamily: SANS, textAlign: 'center' }}>
                 WhatsApp to Order
               </Text>
             </TouchableOpacity>
@@ -248,7 +249,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
               style={[sty.btnOutline, { width: 220, justifyContent: 'center' }]}
             >
               <Text style={{ fontSize: 13, fontWeight: '500', color: '#111',
-                fontFamily: FONT, textAlign: 'center' }}>
+                fontFamily: SANS, textAlign: 'center' }}>
                 Send an Email
               </Text>
             </TouchableOpacity>
@@ -260,7 +261,7 @@ export default function BerrySweetRootsScreen({ navigation }: Props) {
           borderTopWidth: 1, borderTopColor: '#F2F2F2',
           paddingBottom: insets.bottom + 40 }}>
           <Text style={{ fontSize: 11, color: '#C0C0C0', letterSpacing: 1.6,
-            fontFamily: FONT }}>
+            fontFamily: SANS }}>
             © Berry Sweet Roots · Kodaikanal
           </Text>
         </View>
