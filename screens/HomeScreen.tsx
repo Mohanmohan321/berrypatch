@@ -231,7 +231,7 @@ export default function HomeScreen({ navigation }: Props) {
     if (idx === 1) return (
       <View style={[sty.card, { height: cardH }]}>
         <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 72, justifyContent: 'center' }}>
-          <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 22,
+          <Text style={{ textAlign: 'center', marginBottom: 6, fontSize: 32,
             color: '#C0152A', letterSpacing: 3.1, textTransform: 'uppercase',
             fontWeight: '700', fontFamily: SERIF }}>
             Strawberries
