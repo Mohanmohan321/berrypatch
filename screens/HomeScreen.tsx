@@ -195,6 +195,7 @@ export default function HomeScreen({ navigation, route }: Props) {
     };
 
     const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) return;
       e.preventDefault();
       if (isScrollingRef.current) return;
       wheelAcc += e.deltaY;

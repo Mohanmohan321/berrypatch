@@ -447,6 +447,7 @@ export default function ProcessScreen({ navigation }: Props) {
     };
 
     const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) return;
       e.preventDefault();
       if (isScrollingRef.current) return;
       wheelAcc += e.deltaY;
