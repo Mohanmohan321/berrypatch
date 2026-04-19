@@ -244,7 +244,7 @@ export default function HomeScreen({ navigation }: Props) {
             borderLeftWidth: 3, borderLeftColor: C.amber,
             backgroundColor: 'rgba(193,140,93,0.05)', borderRadius: 10 }}>
             <Text style={{ fontStyle: 'italic', fontWeight: '600', color: C.dark,
-              lineHeight: 22, fontSize: 15, fontFamily: SERIF }}>
+              lineHeight: 22, fontSize: 15, fontFamily: SANS }}>
               In the quiet hills of Kodaikanal, The Berry Patch began with a simple idea — to grow strawberries the right way.
             </Text>
           </View>
