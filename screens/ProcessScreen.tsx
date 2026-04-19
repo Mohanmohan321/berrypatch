@@ -97,7 +97,7 @@ const buildPageHtml = (pdfUri: string, pageNumber: number) => `<!DOCTYPE html>
     html,body{width:100%;height:100%;overflow:hidden;background:#f0f0f0}
     #wrap{width:100%;height:100%;overflow:hidden;touch-action:none;
           display:flex;justify-content:center;align-items:center;}
-    #cw{display:inline-block;transform-origin:center center;transition:transform 0.05s linear;}
+    #cw{display:inline-block;transform-origin:center center;}
     canvas{display:block;box-shadow:0 2px 10px rgba(0,0,0,0.18);}
     #msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
          font:14px sans-serif;color:#777;}
@@ -109,7 +109,9 @@ const buildPageHtml = (pdfUri: string, pageNumber: number) => `<!DOCTYPE html>
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     var cw=document.getElementById('cw'), wrap=document.getElementById('wrap');
-    var baseScale=1, currentScale=1, lastScale=1, startDist=0;
+    var sc=1,tx=0,ty=0,pinchSc=1,pinchTx=0,pinchTy=0,pinchD=0,pinchRx=0,pinchRy=0;
+    function apply(){cw.style.transform='translate('+tx+'px,'+ty+'px) scale('+sc+')';}
+    function pdist(t){var dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy);}
     (async function(){
       try{
         var buf  = await fetch('${pdfUri}').then(function(r){return r.arrayBuffer();});
@@ -119,47 +121,46 @@ const buildPageHtml = (pdfUri: string, pageNumber: number) => `<!DOCTYPE html>
         var W    = wrap.clientWidth||window.innerWidth;
         var H    = wrap.clientHeight||window.innerHeight;
         var vp1  = page.getViewport({scale:1});
-        var sc   = Math.min(W*0.94/vp1.width, H*0.94/vp1.height);
-        var vp   = page.getViewport({scale:sc*dpr});
+        var psc  = Math.min(W*0.94/vp1.width, H*0.94/vp1.height);
+        var vp   = page.getViewport({scale:psc*dpr});
         var c    = document.createElement('canvas');
         c.width=vp.width; c.height=vp.height;
         c.style.width=(vp.width/dpr)+'px'; c.style.height=(vp.height/dpr)+'px';
         await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
         cw.appendChild(c);
-        baseScale=currentScale=lastScale=1;
         document.getElementById('msg').style.display='none';
       }catch(e){document.getElementById('msg').textContent='Could not load PDF';}
     })();
-    function dist(t){
-      var dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY;
-      return Math.sqrt(dx*dx+dy*dy);
-    }
     wrap.addEventListener('touchstart',function(e){
-      if(e.touches.length===2)startDist=dist(e.touches);
+      if(e.touches.length===2){
+        var r=wrap.getBoundingClientRect();
+        pinchD=pdist(e.touches);pinchSc=sc;pinchTx=tx;pinchTy=ty;
+        pinchRx=(e.touches[0].clientX+e.touches[1].clientX)/2-r.left-r.width/2;
+        pinchRy=(e.touches[0].clientY+e.touches[1].clientY)/2-r.top-r.height/2;
+      }
     },{passive:true});
     wrap.addEventListener('touchmove',function(e){
       if(e.touches.length===2){
         e.preventDefault();
-        var s=lastScale*(dist(e.touches)/startDist);
-        currentScale=Math.min(Math.max(s,1),5);
-        cw.style.transform='scale('+currentScale+')';
+        var s=Math.min(Math.max(pinchSc*(pdist(e.touches)/pinchD),1),5);
+        if(s<=1){tx=0;ty=0;sc=1;apply();return;}
+        tx=pinchRx-s*(pinchRx-pinchTx)/pinchSc;
+        ty=pinchRy-s*(pinchRy-pinchTy)/pinchSc;
+        sc=s;apply();
       }
     },{passive:false});
-    wrap.addEventListener('touchend',function(e){
-      if(e.touches.length<2)lastScale=currentScale;
-    },{passive:true});
+    wrap.addEventListener('touchend',function(e){},{passive:true});
     wrap.addEventListener('wheel',function(e){
       if(e.ctrlKey||e.metaKey){
         e.preventDefault();
-        currentScale=Math.min(Math.max(currentScale*(1-e.deltaY*0.005),1),5);
-        lastScale=currentScale;
-        cw.style.transform='scale('+currentScale+')';
+        var r=wrap.getBoundingClientRect();
+        var rx=e.clientX-r.left-r.width/2,ry=e.clientY-r.top-r.height/2;
+        var s=Math.min(Math.max(sc*(1-e.deltaY*0.005),1),5);
+        if(s<=1){tx=0;ty=0;sc=1;apply();return;}
+        tx=rx-s*(rx-tx)/sc;ty=ry-s*(ry-ty)/sc;sc=s;apply();
       }
     },{passive:false});
-    wrap.addEventListener('dblclick',function(){
-      currentScale=lastScale=1;
-      cw.style.transform='scale(1)';
-    });
+    wrap.addEventListener('dblclick',function(){sc=1;tx=0;ty=0;apply();});
   <\/script>
 </body>
 </html>`;
@@ -181,7 +182,6 @@ const buildAllPagesHtml = (pdfUri: string) => `<!DOCTYPE html>
     #cw{
       display:flex;flex-direction:column;align-items:center;gap:6px;
       transform-origin:center center;
-      transition:transform 0.05s linear;
     }
     canvas{display:block;box-shadow:0 2px 10px rgba(0,0,0,0.18);}
     #msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -194,7 +194,9 @@ const buildAllPagesHtml = (pdfUri: string) => `<!DOCTYPE html>
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     var cw=document.getElementById('cw'), wrap=document.getElementById('wrap');
-    var baseScale=1, currentScale=1, lastScale=1, startDist=0;
+    var sc=1,baseScale=1,tx=0,ty=0,pinchSc=1,pinchTx=0,pinchTy=0,pinchD=0,pinchRx=0,pinchRy=0;
+    function apply(){cw.style.transform='translate('+tx+'px,'+ty+'px) scale('+sc+')';}
+    function pdist(t){var dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy);}
     (async function(){
       try{
         var buf = await fetch('${pdfUri}').then(function(r){return r.arrayBuffer();});
@@ -207,8 +209,8 @@ const buildAllPagesHtml = (pdfUri: string) => `<!DOCTYPE html>
         for(var i=1;i<=doc.numPages;i++){
           var page = await doc.getPage(i);
           var vp1  = page.getViewport({scale:1});
-          var sc   = pageW/vp1.width;
-          var vp   = page.getViewport({scale:sc*dpr});
+          var psc  = pageW/vp1.width;
+          var vp   = page.getViewport({scale:psc*dpr});
           var c    = document.createElement('canvas');
           c.width=vp.width; c.height=vp.height;
           c.style.width=(vp.width/dpr)+'px'; c.style.height=(vp.height/dpr)+'px';
@@ -219,42 +221,41 @@ const buildAllPagesHtml = (pdfUri: string) => `<!DOCTYPE html>
         totalH += (doc.numPages-1)*6;
         if(totalH > H*0.93){
           baseScale=(H*0.93)/totalH;
-          currentScale=lastScale=baseScale;
-          cw.style.transform='scale('+baseScale+')';
+          sc=baseScale; tx=0; ty=0; apply();
         }
         document.getElementById('msg').style.display='none';
       }catch(e){document.getElementById('msg').textContent='Could not load PDF';}
     })();
-    function dist(t){
-      var dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY;
-      return Math.sqrt(dx*dx+dy*dy);
-    }
     wrap.addEventListener('touchstart',function(e){
-      if(e.touches.length===2)startDist=dist(e.touches);
+      if(e.touches.length===2){
+        var r=wrap.getBoundingClientRect();
+        pinchD=pdist(e.touches);pinchSc=sc;pinchTx=tx;pinchTy=ty;
+        pinchRx=(e.touches[0].clientX+e.touches[1].clientX)/2-r.left-r.width/2;
+        pinchRy=(e.touches[0].clientY+e.touches[1].clientY)/2-r.top-r.height/2;
+      }
     },{passive:true});
     wrap.addEventListener('touchmove',function(e){
       if(e.touches.length===2){
         e.preventDefault();
-        var s=lastScale*(dist(e.touches)/startDist);
-        currentScale=Math.min(Math.max(s,baseScale),baseScale*5);
-        cw.style.transform='scale('+currentScale+')';
+        var s=Math.min(Math.max(pinchSc*(pdist(e.touches)/pinchD),baseScale),baseScale*5);
+        if(s<=baseScale){tx=0;ty=0;sc=baseScale;apply();return;}
+        tx=pinchRx-s*(pinchRx-pinchTx)/pinchSc;
+        ty=pinchRy-s*(pinchRy-pinchTy)/pinchSc;
+        sc=s;apply();
       }
     },{passive:false});
-    wrap.addEventListener('touchend',function(e){
-      if(e.touches.length<2)lastScale=currentScale;
-    },{passive:true});
+    wrap.addEventListener('touchend',function(e){},{passive:true});
     wrap.addEventListener('wheel',function(e){
       if(e.ctrlKey||e.metaKey){
         e.preventDefault();
-        currentScale=Math.min(Math.max(currentScale*(1-e.deltaY*0.005),baseScale),baseScale*5);
-        lastScale=currentScale;
-        cw.style.transform='scale('+currentScale+')';
+        var r=wrap.getBoundingClientRect();
+        var rx=e.clientX-r.left-r.width/2,ry=e.clientY-r.top-r.height/2;
+        var s=Math.min(Math.max(sc*(1-e.deltaY*0.005),baseScale),baseScale*5);
+        if(s<=baseScale){tx=0;ty=0;sc=baseScale;apply();return;}
+        tx=rx-s*(rx-tx)/sc;ty=ry-s*(ry-ty)/sc;sc=s;apply();
       }
     },{passive:false});
-    wrap.addEventListener('dblclick',function(){
-      currentScale=lastScale=baseScale;
-      cw.style.transform='scale('+baseScale+')';
-    });
+    wrap.addEventListener('dblclick',function(){sc=baseScale;tx=0;ty=0;apply();});
   <\/script>
 </body>
 </html>`;
