@@ -271,17 +271,16 @@ export default function HomeScreen({ navigation, route }: Props) {
           <ImageCarousel containerWidth={innerW} />
           <TouchableOpacity
             onPress={() => navigation.navigate('Process')}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-              gap: 8, width: '100%', marginTop: 12, backgroundColor: C.green,
+            style={{ alignItems: 'center', justifyContent: 'center',
+              width: '100%', marginTop: 12, backgroundColor: C.green,
               borderRadius: 14, paddingVertical: 14,
               shadowColor: C.green, shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.38, shadowRadius: 10, elevation: 6 }}
             activeOpacity={0.88}
           >
             <Text style={{ color: 'white', fontSize: 16, fontWeight: '700', letterSpacing: 0.6, fontFamily: SANS }}>
-              OUR PROCESS
+              OUR PROCESS  →
             </Text>
-            <Text style={{ color: 'white', fontSize: 17 }}>→</Text>
           </TouchableOpacity>
         </View>
         <ScrollHint />
