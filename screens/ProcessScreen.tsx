@@ -477,7 +477,7 @@ export default function ProcessScreen({ navigation }: Props) {
     };
   }, []);
 
-  const goBackToStory = () => navigation.goBack();
+  const goBackToStory = () => navigation.navigate('Home', { goToCard: 1 });
 
   const renderCard = useCallback(({ item: idx }: { item: number }) => {
 

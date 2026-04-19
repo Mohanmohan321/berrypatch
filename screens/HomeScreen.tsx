@@ -1,4 +1,5 @@
 import React, { useRef, useCallback, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -121,7 +122,7 @@ const ImageCarousel = ({ containerWidth }: { containerWidth: number }) => {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
-export default function HomeScreen({ navigation }: Props) {
+export default function HomeScreen({ navigation, route }: Props) {
   const { width: SCREEN_W } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const flatRef = useRef<FlatList>(null);
@@ -132,6 +133,15 @@ export default function HomeScreen({ navigation }: Props) {
 
   const colW  = Math.min(SCREEN_W, 480);
   const innerW = colW - 48;
+
+  /* ── Jump to requested card when navigating back from Process ─── */
+  useFocusEffect(useCallback(() => {
+    const card = route.params?.goToCard;
+    if (card === undefined) return;
+    currentPage.current = card;
+    setWebPageRef.current(card);
+    flatRef.current?.scrollToIndex({ index: card, animated: false });
+  }, [route.params?.goToCard]));
 
   /* ── Track true viewport height (mobile browser chrome aware) ─── */
   const [vh, setVh] = React.useState(
