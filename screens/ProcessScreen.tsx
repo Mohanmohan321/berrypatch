@@ -537,7 +537,7 @@ export default function ProcessScreen({ navigation }: Props) {
               <Text style={{ fontSize: 20 }}>🧪</Text>
             </View>
             <Text style={{ fontSize: 13, color: B.primary, fontWeight: '700',
-              letterSpacing: 5.1, textTransform: 'uppercase', fontFamily: SERIF }}>
+              letterSpacing: 5.1, textTransform: 'uppercase', fontFamily: SANS }}>
               Lab Certified
             </Text>
           </View>
@@ -563,7 +563,7 @@ export default function ProcessScreen({ navigation }: Props) {
                 <View style={{ flex: 1 }}>
                   <View style={{ alignSelf: 'center', borderBottomWidth: 2, borderBottomColor: B.dark, marginBottom: 6 }}>
                     <Text style={{ fontSize: 15, textAlign: 'center', letterSpacing: 1.9, fontWeight: '600', color: B.dark,
-                      textTransform: 'uppercase', fontFamily: SERIF }}>
+                      textTransform: 'uppercase', fontFamily: SANS }}>
                       {label}
                     </Text>
                   </View>
